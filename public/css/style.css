@@ -365,3 +365,79 @@ footer .footer-links a:hover{color:var(--chalk); text-decoration:underline;}
 .lock-row .result-tag.lost{background:rgba(217,83,79,0.14); color:var(--lose);}
 .lock-row .result-tag.pending{background:rgba(255,255,255,0.04); color:var(--chalk-dim);}
 .empty-note{padding:24px 0; color:var(--chalk-dim); font-size:14px; text-align:center;}
+
+/* ============================================================
+   MOBILE — refonte responsive
+   ============================================================ */
+@media(max-width:640px){
+  .wrap{padding:0 16px;}
+
+  /* Nav plus compacte */
+  nav .wrap{height:60px;}
+  .logo{font-size:22px;}
+  .navcta{padding:8px 14px; font-size:13px;}
+  .nav-status{display:none;}
+
+  /* Sections moins hautes sur petit écran */
+  section{padding:48px 0;}
+  .page-head{padding:32px 0 24px;}
+  .page-head h1{font-size:clamp(32px,9vw,44px);}
+  .page-head p.lead{font-size:14px;}
+  .sec-head h2{font-size:clamp(28px,7vw,40px);}
+  .hero{padding:48px 0 56px;}
+
+  /* Légende des paliers : plus compacte, sur 2 lignes si besoin */
+  .tier-legend{gap:10px 18px; font-size:12px; margin-bottom:18px;}
+
+  /* Filtres empilés, pleine largeur, faciles à toucher */
+  .filters{gap:12px;}
+  .filters .field{min-width:0; flex:1 1 100%;}
+  .field select{padding:12px 14px;}
+
+  .member-header{padding:14px 16px; font-size:11px; gap:6px;}
+
+  /* Le coeur du bug : la ligne de prono était en flex, et les
+     subtilités de rétrécissement/min-width automatique de flexbox
+     donnaient des résultats imprévisibles sur mobile (texte écrasé,
+     éléments qui disparaissent). On repart sur un bloc simple et
+     fiable : chaque info empilée l'une sous l'autre, sans flex. */
+  .lock-row{
+    display:block;
+    padding:16px;
+  }
+  .lock-row .l{
+    display:block;
+    width:100%;
+    text-align:left;
+    white-space:normal;
+    font-size:13px;
+    line-height:1.4;
+    margin-bottom:8px;
+  }
+  .lock-row .blurred,
+  .lock-row .pick-value{
+    display:block;
+    width:100%;
+    text-align:left;
+    white-space:normal;
+    margin:0 0 8px;
+  }
+  .lock-row .result-tag,
+  .lock-row .anj-badge,
+  .lock-row .lock-badge,
+  .lock-row .free-badge,
+  .lock-row .account-badge{
+    display:inline-block;
+    margin:0 6px 6px 0;
+  }
+
+  .unlock-cta{padding:18px 16px;}
+  .unlock-cta p{font-size:12px;}
+
+  /* Grilles génériques déjà en 1 colonne sous 860px, on resserre juste
+     l'espacement pour éviter un scroll interminable */
+  .offers, .tickets, .about-points, .testimonials{gap:14px;}
+  .offer, .ticket, .about-point, .testimonial{padding:22px 20px;}
+
+  .signup-form{padding:22px 18px;}
+}
