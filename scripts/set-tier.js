@@ -20,12 +20,16 @@ if (!['account', 'pro'].includes(tier)) {
   process.exit(1);
 }
 
-const user = db.prepare('SELECT id, name, tier FROM users WHERE email = ?').get(email.toLowerCase());
-if (!user) {
-  console.error(`Aucun compte trouvé pour ${email}. Crée d'abord un compte via le formulaire d'inscription du site.`);
-  process.exit(1);
-}
+(async () => {
+  const { rows } = await db.query('SELECT id, name, tier FROM users WHERE email = $1', [email.toLowerCase()]);
+  const user = rows[0];
+  if (!user) {
+    console.error(`Aucun compte trouvé pour ${email}. Crée d'abord un compte via le formulaire d'inscription du site.`);
+    process.exit(1);
+  }
 
-db.prepare('UPDATE users SET tier = ? WHERE id = ?').run(tier, user.id);
-console.log(`${user.name} (${email}) est passé de "${user.tier}" à "${tier}".`);
-console.log('Reconnecte-toi sur le site pour que le changement prenne effet (nouveau token).');
+  await db.query('UPDATE users SET tier = $1 WHERE id = $2', [tier, user.id]);
+  console.log(`${user.name} (${email}) est passé de "${user.tier}" à "${tier}".`);
+  console.log('Reconnecte-toi sur le site pour que le changement prenne effet (nouveau token).');
+  await db.pool.end();
+})();

@@ -22,13 +22,17 @@ if (!['on', 'off'].includes(action)) {
   process.exit(1);
 }
 
-const user = db.prepare('SELECT id, name, is_admin FROM users WHERE email = ?').get(email.toLowerCase());
-if (!user) {
-  console.error(`Aucun compte trouvé pour ${email}. Crée d'abord un compte via le formulaire d'inscription du site.`);
-  process.exit(1);
-}
+(async () => {
+  const { rows } = await db.query('SELECT id, name, is_admin FROM users WHERE email = $1', [email.toLowerCase()]);
+  const user = rows[0];
+  if (!user) {
+    console.error(`Aucun compte trouvé pour ${email}. Crée d'abord un compte via le formulaire d'inscription du site.`);
+    process.exit(1);
+  }
 
-const isAdmin = action === 'on' ? 1 : 0;
-db.prepare('UPDATE users SET is_admin = ? WHERE id = ?').run(isAdmin, user.id);
-console.log(`${user.name} (${email}) est ${isAdmin ? 'maintenant admin' : "n'est plus admin"}.`);
-console.log('Reconnecte-toi sur le site pour que le changement prenne effet (nouveau token).');
+  const isAdmin = action === 'on';
+  await db.query('UPDATE users SET is_admin = $1 WHERE id = $2', [isAdmin, user.id]);
+  console.log(`${user.name} (${email}) est ${isAdmin ? 'maintenant admin' : "n'est plus admin"}.`);
+  console.log('Reconnecte-toi sur le site pour que le changement prenne effet (nouveau token).');
+  await db.pool.end();
+})();

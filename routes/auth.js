@@ -30,12 +30,13 @@ function makeToken(user) {
 
 // Journalise chaque tentative de connexion (réussie ou non) pour l'historique admin.
 // Best-effort : une erreur ici ne doit jamais faire échouer la connexion elle-même.
-function logLoginEvent(req, { email, success, tier }) {
+async function logLoginEvent(req, { email, success, tier }) {
   try {
     const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || null;
-    db.prepare(
-      `INSERT INTO login_events (email, success, tier, ip) VALUES (?, ?, ?, ?)`
-    ).run(email.toLowerCase(), success ? 1 : 0, tier || null, ip);
+    await db.query(
+      `INSERT INTO login_events (email, success, tier, ip) VALUES ($1, $2, $3, $4)`,
+      [email.toLowerCase(), success, tier || null, ip]
+    );
   } catch (err) {
     console.error('Erreur de journalisation de connexion:', err);
   }
@@ -55,19 +56,20 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({ error: 'Le mot de passe doit faire au moins 8 caractères.' });
   }
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
-  if (existing) {
+  const { rows: existingRows } = await db.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
+  if (existingRows[0]) {
     return res.status(409).json({ error: 'Un compte existe déjà avec cet email.' });
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
-  const notifyEmailFlag = notify_email === false ? 0 : 1; // opt-out explicite uniquement
+  const notifyEmailFlag = notify_email === false ? false : true; // opt-out explicite uniquement
 
-  const info = db.prepare(
-    `INSERT INTO users (name, email, password_hash, tier, notify_email) VALUES (?, ?, ?, 'account', ?)`
-  ).run(name.trim(), email.toLowerCase().trim(), passwordHash, notifyEmailFlag);
+  const { rows } = await db.query(
+    `INSERT INTO users (name, email, password_hash, tier, notify_email) VALUES ($1, $2, $3, 'account', $4) RETURNING id`,
+    [name.trim(), email.toLowerCase().trim(), passwordHash, notifyEmailFlag]
+  );
 
-  const user = { id: Number(info.lastInsertRowid), email: email.toLowerCase(), tier: 'account' };
+  const user = { id: rows[0].id, email: email.toLowerCase(), tier: 'account' };
   const token = makeToken(user);
 
   res.status(201).json({
@@ -84,7 +86,8 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Email et mot de passe requis.' });
   }
 
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
+  const { rows } = await db.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase()]);
+  const user = rows[0];
   if (!user) {
     logLoginEvent(req, { email, success: false, tier: null });
     return res.status(401).json({ error: 'Email ou mot de passe incorrect.' });
@@ -100,7 +103,7 @@ router.post('/login', async (req, res) => {
   let effectiveTier = user.tier;
   if (user.tier === 'pro' && user.pro_until && new Date(user.pro_until) < new Date()) {
     effectiveTier = 'account';
-    db.prepare(`UPDATE users SET tier = 'account' WHERE id = ?`).run(user.id);
+    await db.query(`UPDATE users SET tier = 'account' WHERE id = $1`, [user.id]);
   }
 
   logLoginEvent(req, { email, success: true, tier: effectiveTier });
@@ -124,7 +127,8 @@ router.post('/forgot-password', async (req, res) => {
 
   const genericResponse = { ok: true, message: 'Si un compte existe avec cet email, un lien de réinitialisation vient d\'être envoyé.' };
 
-  const user = db.prepare('SELECT id, name, email FROM users WHERE email = ?').get(email.toLowerCase().trim());
+  const { rows } = await db.query('SELECT id, name, email FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+  const user = rows[0];
   if (!user) {
     // On répond pareil, mais on n'envoie rien.
     return res.json(genericResponse);
@@ -134,8 +138,7 @@ router.post('/forgot-password', async (req, res) => {
   const tokenHash = hashResetToken(rawToken);
   const expires = new Date(Date.now() + RESET_TOKEN_TTL_MS).toISOString();
 
-  db.prepare('UPDATE users SET reset_token_hash = ?, reset_token_expires = ? WHERE id = ?')
-    .run(tokenHash, expires, user.id);
+  await db.query('UPDATE users SET reset_token_hash = $1, reset_token_expires = $2 WHERE id = $3', [tokenHash, expires, user.id]);
 
   const resetUrl = `${SITE_URL}/reinitialiser-mdp.html?token=${rawToken}`;
 
@@ -162,25 +165,32 @@ router.post('/reset-password', async (req, res) => {
   }
 
   const tokenHash = hashResetToken(token);
-  const user = db.prepare(
-    'SELECT id, reset_token_expires FROM users WHERE reset_token_hash = ?'
-  ).get(tokenHash);
+  const { rows } = await db.query(
+    'SELECT id, reset_token_expires FROM users WHERE reset_token_hash = $1',
+    [tokenHash]
+  );
+  const user = rows[0];
 
   if (!user || !user.reset_token_expires || new Date(user.reset_token_expires) < new Date()) {
     return res.status(400).json({ error: 'Ce lien de réinitialisation est invalide ou expiré.' });
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
-  db.prepare(
-    'UPDATE users SET password_hash = ?, reset_token_hash = NULL, reset_token_expires = NULL WHERE id = ?'
-  ).run(passwordHash, user.id);
+  await db.query(
+    'UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_token_expires = NULL WHERE id = $2',
+    [passwordHash, user.id]
+  );
 
   res.json({ ok: true, message: 'Mot de passe mis à jour. Tu peux te connecter.' });
 });
 
 // --- GET /api/auth/me ---
-router.get('/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT id, name, email, tier, pro_until, notify_email, is_admin FROM users WHERE id = ?').get(req.user.id);
+router.get('/me', requireAuth, async (req, res) => {
+  const { rows } = await db.query(
+    'SELECT id, name, email, tier, pro_until, notify_email, is_admin FROM users WHERE id = $1',
+    [req.user.id]
+  );
+  const user = rows[0];
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable.' });
   res.json({ user: { ...user, notify_email: !!user.notify_email, is_admin: !!user.is_admin } });
 });
@@ -188,51 +198,51 @@ router.get('/me', requireAuth, (req, res) => {
 // --- PATCH /api/auth/notifications ---
 // Permet à l'utilisateur connecté d'activer/désactiver l'email à chaque
 // nouveau prono (indépendant du palier — ça ne change rien à l'accès).
-router.patch('/notifications', requireAuth, (req, res) => {
+router.patch('/notifications', requireAuth, async (req, res) => {
   const { notify_email } = req.body;
   if (typeof notify_email !== 'boolean') {
     return res.status(400).json({ error: 'notify_email doit être un booléen.' });
   }
-  db.prepare('UPDATE users SET notify_email = ? WHERE id = ?').run(notify_email ? 1 : 0, req.user.id);
+  await db.query('UPDATE users SET notify_email = $1 WHERE id = $2', [notify_email, req.user.id]);
   res.json({ ok: true, notify_email });
 });
 
 // --- GET /api/auth/users (admin only) ---
 // Liste tous les utilisateurs inscrits, pour le panel admin.
 // Ne renvoie jamais password_hash.
-router.get('/users', requireAdmin, (req, res) => {
-  const users = db.prepare(`
+router.get('/users', requireAdmin, async (req, res) => {
+  const { rows } = await db.query(`
     SELECT id, name, email, tier, pro_until, notify_email, is_admin, created_at
     FROM users
     ORDER BY created_at DESC
-  `).all();
+  `);
 
   res.json({
-    users: users.map(u => ({ ...u, notify_email: !!u.notify_email, is_admin: !!u.is_admin }))
+    users: rows.map(u => ({ ...u, notify_email: !!u.notify_email, is_admin: !!u.is_admin }))
   });
 });
 
 // --- GET /api/auth/login-history (admin only) ---
 // Dernières tentatives de connexion (réussies ou non), pour surveiller les
 // accès au panel admin.
-router.get('/login-history', requireAdmin, (req, res) => {
-  const events = db.prepare(`
+router.get('/login-history', requireAdmin, async (req, res) => {
+  const { rows } = await db.query(`
     SELECT id, email, success, tier, ip, created_at
     FROM login_events
     ORDER BY created_at DESC
     LIMIT 50
-  `).all();
+  `);
 
   res.json({
-    events: events.map(e => ({ ...e, success: !!e.success }))
+    events: rows.map(e => ({ ...e, success: !!e.success }))
   });
 });
 
 // --- GET /api/auth/stats (admin only) ---
 // Chiffres pour le tableau de bord du panel admin : inscriptions par semaine
 // (8 dernières semaines) et taux de conversion compte gratuit → pro.
-router.get('/stats', requireAdmin, (req, res) => {
-  const users = db.prepare('SELECT tier, created_at FROM users').all();
+router.get('/stats', requireAdmin, async (req, res) => {
+  const { rows: users } = await db.query('SELECT tier, created_at FROM users');
 
   // Lundi de la semaine contenant `date`, au format YYYY-MM-DD.
   function weekStart(date) {

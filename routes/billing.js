@@ -37,7 +37,8 @@ router.post('/checkout', requireStripeConfigured, requireAuth, async (req, res) 
     return res.status(503).json({ error: `Prix Stripe manquant pour le plan '${plan}' (variable d'env non définie).` });
   }
 
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  const { rows } = await db.query('SELECT * FROM users WHERE id = $1', [req.user.id]);
+  const user = rows[0];
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable.' });
 
   try {
@@ -67,7 +68,7 @@ router.post('/checkout', requireStripeConfigured, requireAuth, async (req, res) 
         metadata: { user_id: String(user.id) },
       });
       customerId = customer.id;
-      db.prepare('UPDATE users SET stripe_customer_id = ? WHERE id = ?').run(customerId, user.id);
+      await db.query('UPDATE users SET stripe_customer_id = $1 WHERE id = $2', [customerId, user.id]);
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -90,7 +91,8 @@ router.post('/checkout', requireStripeConfigured, requireAuth, async (req, res) 
 // Renvoie l'URL du portail client Stripe (gérer/annuler l'abonnement Pro,
 // voir les factures) pour l'utilisateur connecté.
 router.post('/portal', requireStripeConfigured, requireAuth, async (req, res) => {
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  const { rows } = await db.query('SELECT * FROM users WHERE id = $1', [req.user.id]);
+  const user = rows[0];
   if (!user || !user.stripe_customer_id) {
     return res.status(400).json({ error: 'Aucun compte de facturation Stripe associé.' });
   }
@@ -110,7 +112,7 @@ router.post('/portal', requireStripeConfigured, requireAuth, async (req, res) =>
 // --- POST /api/billing/webhook ---
 // Reçoit les événements Stripe. Doit recevoir le BODY BRUT (pas parsé en
 // JSON) pour que la vérification de signature fonctionne — voir server.js.
-router.post('/webhook', requireStripeConfigured, (req, res) => {
+router.post('/webhook', requireStripeConfigured, async (req, res) => {
   let event;
   try {
     event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET);
@@ -130,10 +132,12 @@ router.post('/webhook', requireStripeConfigured, (req, res) => {
         if (plan === 'semaine') {
           // Achat ponctuel : accès Pro pendant 7 jours, sans abonnement récurrent.
           const proUntil = new Date(Date.now() + SEMAINE_DURATION_MS).toISOString();
-          db.prepare(`UPDATE users SET tier = 'pro', pro_until = ? WHERE id = ?`).run(proUntil, userId);
+          await db.query(`UPDATE users SET tier = 'pro', pro_until = $1 WHERE id = $2`, [proUntil, userId]);
         } else if (plan === 'pro' && session.subscription) {
-          db.prepare(`UPDATE users SET tier = 'pro', stripe_subscription_id = ? WHERE id = ?`)
-            .run(session.subscription, userId);
+          await db.query(
+            `UPDATE users SET tier = 'pro', stripe_subscription_id = $1 WHERE id = $2`,
+            [session.subscription, userId]
+          );
         }
         break;
       }
@@ -144,11 +148,12 @@ router.post('/webhook', requireStripeConfigured, (req, res) => {
         const invoice = event.data.object;
         const subscriptionId = invoice.subscription;
         if (!subscriptionId) break;
-        const user = db.prepare('SELECT id FROM users WHERE stripe_subscription_id = ?').get(subscriptionId);
+        const { rows } = await db.query('SELECT id FROM users WHERE stripe_subscription_id = $1', [subscriptionId]);
+        const user = rows[0];
         if (!user) break;
         const periodEnd = invoice.lines?.data?.[0]?.period?.end;
         const proUntil = periodEnd ? new Date(periodEnd * 1000).toISOString() : null;
-        db.prepare(`UPDATE users SET tier = 'pro', pro_until = ? WHERE id = ?`).run(proUntil, user.id);
+        await db.query(`UPDATE users SET tier = 'pro', pro_until = $1 WHERE id = $2`, [proUntil, user.id]);
         break;
       }
 
@@ -165,10 +170,10 @@ router.post('/webhook', requireStripeConfigured, (req, res) => {
       // de paiement répétés) : retour immédiat au palier gratuit.
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
-        db.prepare(`
+        await db.query(`
           UPDATE users SET tier = 'account', stripe_subscription_id = NULL, pro_until = NULL
-          WHERE stripe_subscription_id = ?
-        `).run(subscription.id);
+          WHERE stripe_subscription_id = $1
+        `, [subscription.id]);
         break;
       }
 

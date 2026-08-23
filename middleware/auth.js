@@ -17,7 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
  * semaines (durée de vie 30 jours) ne doit pas continuer à refléter un
  * ancien palier périmé.
  */
-function attachUser(req, res, next) {
+async function attachUser(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
     req.user = null;
@@ -26,7 +26,8 @@ function attachUser(req, res, next) {
   const token = header.slice('Bearer '.length);
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    const fresh = db.prepare('SELECT id, email, name, tier, is_admin FROM users WHERE id = ?').get(payload.id);
+    const { rows } = await db.query('SELECT id, email, name, tier, is_admin FROM users WHERE id = $1', [payload.id]);
+    const fresh = rows[0];
     if (!fresh) {
       req.user = null;
     } else {

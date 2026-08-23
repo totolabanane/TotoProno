@@ -4,7 +4,7 @@ API pour le site de pronostics avec 3 paliers d'accès : public, compte gratuit,
 
 ## Stack
 - Node.js + Express
-- SQLite (better-sqlite3) — fichier local, migrable vers PostgreSQL plus tard
+- PostgreSQL (hébergé sur Neon) — via le paquet `pg`
 - bcrypt (hash des mots de passe)
 - JWT (sessions)
 
@@ -13,12 +13,15 @@ API pour le site de pronostics avec 3 paliers d'accès : public, compte gratuit,
 ```bash
 npm install
 cp .env.example .env
-# ouvre .env et remplace JWT_SECRET par une vraie chaîne aléatoire longue
+# ouvre .env : remplace JWT_SECRET par une vraie chaîne aléatoire longue,
+# et DATABASE_URL par l'URL de connexion de ton projet Neon (dashboard Neon
+# → ton projet → "Connection string").
 npm start
 ```
 
 Le serveur démarre sur http://localhost:3000 (ou le PORT défini dans .env).
-La base de données SQLite est créée automatiquement dans `./data/apex.db` au premier lancement.
+Les tables PostgreSQL sont créées automatiquement (si elles n'existent pas
+déjà) au démarrage du serveur.
 
 ## Endpoints
 
@@ -74,6 +77,6 @@ blocage de l'admin).
 3. **CORS est ouvert à tous les domaines** (`cors()` sans config). À restreindre à
    ton (futur) nom de domaine avant la mise en prod.
 
-4. **SQLite convient pour démarrer**, mais si tu montes en charge (beaucoup
-   d'utilisateurs simultanés), prévois une migration vers PostgreSQL — la structure
-   des requêtes ne change presque pas.
+4. **Base de données : PostgreSQL (Neon).** Le plan gratuit de Neon suffit largement
+   pour démarrer. Si tu montes en charge, tu peux passer à un plan payant Neon sans
+   changer de code.

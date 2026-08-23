@@ -17,8 +17,8 @@ function userRank(user) {
 // Statistiques agrégées publiques pour le bandeau marketing du site.
 // Ne révèle aucun pick verrouillé — uniquement des compteurs calculés
 // sur l'ensemble des pronos (public + compte + pro confondus).
-router.get('/stats', (req, res) => {
-  const rows = db.prepare('SELECT visibility, odds, result FROM pronos').all();
+router.get('/stats', async (req, res) => {
+  const { rows } = await db.query('SELECT visibility, odds, result FROM pronos');
 
   const total = rows.length;
   const resolved = rows.filter(r => r.result === 'won' || r.result === 'lost');
@@ -44,14 +44,14 @@ router.get('/stats', (req, res) => {
 // Renvoie tous les pronos du jour, mais masque le contenu (pick/cote/analyse)
 // des pronos dont le palier est supérieur à celui de l'utilisateur.
 // req.user est déjà attaché (ou null) par le middleware attachUser global.
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   const rank = userRank(req.user);
 
-  const rows = db.prepare(`
+  const { rows } = await db.query(`
     SELECT id, match_label, competition, pick, odds, analysis, visibility, match_date, result, hors_anj
     FROM pronos
     ORDER BY match_date ASC
-  `).all();
+  `);
 
   const result = rows.map(row => {
     const requiredRank = TIER_RANK[row.visibility] ?? 0;
@@ -78,7 +78,7 @@ router.get('/', (req, res) => {
 });
 
 // --- POST /api/pronos (admin only) ---
-router.post('/', requireAdmin, (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
   const { match_label, competition, pick, odds, analysis, visibility, match_date, hors_anj } = req.body;
 
   if (!match_label || !pick || !visibility || !match_date) {
@@ -88,46 +88,48 @@ router.post('/', requireAdmin, (req, res) => {
     return res.status(400).json({ error: "visibility doit être 'public', 'account' ou 'pro'." });
   }
 
-  const info = db.prepare(`
+  const { rows } = await db.query(`
     INSERT INTO pronos (match_label, competition, pick, odds, analysis, visibility, match_date, hors_anj)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(match_label, competition || null, pick, odds || null, analysis || null, visibility, match_date, hors_anj ? 1 : 0);
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING id
+  `, [match_label, competition || null, pick, odds || null, analysis || null, visibility, match_date, !!hors_anj]);
+
+  const id = rows[0].id;
 
   // Notification (email + Telegram) — volontairement non "awaité" pour que
   // la réponse à l'admin ne soit jamais ralentie ou bloquée par SMTP/Telegram.
   notifyNewPronoAsync({
-    id: Number(info.lastInsertRowid),
-    match_label, competition, pick, odds, analysis, visibility, match_date,
+    id, match_label, competition, pick, odds, analysis, visibility, match_date,
   });
 
-  res.status(201).json({ id: Number(info.lastInsertRowid) });
+  res.status(201).json({ id });
 });
 
 // --- PATCH /api/pronos/:id/result (admin only) ---
-router.patch('/:id/result', requireAdmin, (req, res) => {
+router.patch('/:id/result', requireAdmin, async (req, res) => {
   const { result } = req.body; // 'won' | 'lost'
   if (!['won', 'lost'].includes(result)) {
     return res.status(400).json({ error: "result doit être 'won' ou 'lost'." });
   }
-  db.prepare('UPDATE pronos SET result = ? WHERE id = ?').run(result, req.params.id);
+  await db.query('UPDATE pronos SET result = $1 WHERE id = $2', [result, req.params.id]);
   res.json({ ok: true });
 });
 
 // --- DELETE /api/pronos/:id (admin only) ---
 // Supprime définitivement un prono (ex: erreur de saisie, match annulé).
-router.delete('/:id', requireAdmin, (req, res) => {
-  const existing = db.prepare('SELECT id FROM pronos WHERE id = ?').get(req.params.id);
-  if (!existing) {
+router.delete('/:id', requireAdmin, async (req, res) => {
+  const { rows } = await db.query('SELECT id FROM pronos WHERE id = $1', [req.params.id]);
+  if (!rows[0]) {
     return res.status(404).json({ error: 'Prono introuvable.' });
   }
-  db.prepare('DELETE FROM pronos WHERE id = ?').run(req.params.id);
+  await db.query('DELETE FROM pronos WHERE id = $1', [req.params.id]);
   res.json({ ok: true });
 });
 
 // --- GET /api/pronos/win-rates-by-tier (admin only) ---
 // Taux de réussite des pronos résolus, groupé par palier requis (public/account/pro).
-router.get('/win-rates-by-tier', requireAdmin, (req, res) => {
-  const rows = db.prepare('SELECT visibility, result FROM pronos').all();
+router.get('/win-rates-by-tier', requireAdmin, async (req, res) => {
+  const { rows } = await db.query('SELECT visibility, result FROM pronos');
 
   const byTier = { public: [], account: [], pro: [] };
   rows.forEach(r => {

@@ -3,6 +3,7 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 
+const db = require('./db');
 const { attachUser } = require('./middleware/auth');
 const authRoutes = require('./routes/auth');
 const pronosRoutes = require('./routes/pronos');
@@ -42,10 +43,16 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-if (require.main === module) {
+
+async function start() {
+  await db.init(); // crée les tables PostgreSQL si besoin, avant d'accepter des requêtes
   app.listen(PORT, () => {
     console.log(`API prête sur http://localhost:${PORT}`);
   });
+}
+
+if (require.main === module) {
+  start();
 }
 
 module.exports = app;
