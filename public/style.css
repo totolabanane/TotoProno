@@ -398,16 +398,17 @@ footer .footer-links a:hover{color:var(--chalk); text-decoration:underline;}
 
   /* Le coeur du bug : la ligne de prono passait en flex sur une seule
      ligne et débordait hors de l'écran (badges coupés à droite).
-     On la laisse revenir à la ligne au lieu de forcer 5 éléments
-     sur une seule rangée. */
+     Chaque information (match, pick, badges) occupe désormais toute
+     la largeur de sa propre ligne — plus rien ne se compresse en
+     colonne étroite ni ne sort du cadre. */
   .lock-row{
     flex-wrap:wrap;
-    row-gap:10px;
+    row-gap:8px;
     column-gap:8px;
     padding:16px;
   }
   .lock-row .l{
-    flex:1 1 100%;
+    flex:0 0 100%;
     text-align:left;
     white-space:normal;
     font-size:13px;
@@ -415,8 +416,9 @@ footer .footer-links a:hover{color:var(--chalk); text-decoration:underline;}
   }
   .lock-row .blurred,
   .lock-row .pick-value{
-    flex:0 1 auto;
+    flex:0 0 100%;
     text-align:left;
+    white-space:normal;
     margin-right:0;
   }
   .lock-row .result-tag,
