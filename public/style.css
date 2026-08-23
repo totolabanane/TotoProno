@@ -396,37 +396,39 @@ footer .footer-links a:hover{color:var(--chalk); text-decoration:underline;}
 
   .member-header{padding:14px 16px; font-size:11px; gap:6px;}
 
-  /* Le coeur du bug : la ligne de prono passait en flex sur une seule
-     ligne et débordait hors de l'écran (badges coupés à droite).
-     Chaque information (match, pick, badges) occupe désormais toute
-     la largeur de sa propre ligne — plus rien ne se compresse en
-     colonne étroite ni ne sort du cadre. */
+  /* Le coeur du bug : la ligne de prono était en flex, et les
+     subtilités de rétrécissement/min-width automatique de flexbox
+     donnaient des résultats imprévisibles sur mobile (texte écrasé,
+     éléments qui disparaissent). On repart sur un bloc simple et
+     fiable : chaque info empilée l'une sous l'autre, sans flex. */
   .lock-row{
-    flex-wrap:wrap;
-    row-gap:8px;
-    column-gap:8px;
+    display:block;
     padding:16px;
   }
   .lock-row .l{
-    flex:0 0 100%;
+    display:block;
+    width:100%;
     text-align:left;
     white-space:normal;
     font-size:13px;
     line-height:1.4;
+    margin-bottom:8px;
   }
   .lock-row .blurred,
   .lock-row .pick-value{
-    flex:0 0 100%;
+    display:block;
+    width:100%;
     text-align:left;
     white-space:normal;
-    margin-right:0;
+    margin:0 0 8px;
   }
   .lock-row .result-tag,
   .lock-row .anj-badge,
   .lock-row .lock-badge,
   .lock-row .free-badge,
   .lock-row .account-badge{
-    flex:0 0 auto;
+    display:inline-block;
+    margin:0 6px 6px 0;
   }
 
   .unlock-cta{padding:18px 16px;}
