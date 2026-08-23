@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offres — TOTOPRONO PRONOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="navlinks">
+      <a href="index.html">Accueil</a>
+      <a href="apropos.html">À propos</a>
+      <a href="offres.html" class="active">Offres</a>
+      <a href="pronos.html">Pronostics</a>
+      <a href="faq.html">FAQ</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-status mono" id="navStatus"></span>
+      <a href="offres.html" class="navcta" id="navCta">S'abonner</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-head">
+  <div class="wrap">
+    <div class="eyebrow">Abonnement</div>
+    <h1>Accès direct à mes analyses.</h1>
+    <p class="lead">Trois formules, aucun engagement caché. Le contenu débloqué dépend uniquement du palier de ton compte.</p>
+  </div>
+</section>
+
+<section id="comparatif" style="padding-top:64px;">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Comparatif</div>
+      <h2>Ce que débloque chaque palier.</h2>
+    </div>
+    <div class="table-scroll">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Fonctionnalité</th>
+            <th>Public</th>
+            <th>Basic</th>
+            <th class="col-pro">Pro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Résultats & historique</td>
+            <td class="yes">✓</td>
+            <td class="yes">✓</td>
+            <td class="col-pro yes">✓</td>
+          </tr>
+          <tr>
+            <td>1 prono du jour en clair</td>
+            <td class="no">—</td>
+            <td class="yes">✓</td>
+            <td class="col-pro yes">✓</td>
+          </tr>
+          <tr>
+            <td>Tous les pronos du jour (3-5)</td>
+            <td class="no">—</td>
+            <td class="no">—</td>
+            <td class="col-pro yes">✓</td>
+          </tr>
+          <tr>
+            <td>Analyse détaillée par match</td>
+            <td class="no">—</td>
+            <td class="no">—</td>
+            <td class="col-pro yes">✓</td>
+          </tr>
+          <tr>
+            <td>Alertes en temps réel</td>
+            <td class="no">—</td>
+            <td class="no">—</td>
+            <td class="col-pro yes">✓</td>
+          </tr>
+          <tr>
+            <td>Accès Telegram privé</td>
+            <td class="no">—</td>
+            <td class="no">—</td>
+            <td class="col-pro yes">✓</td>
+          </tr>
+          <tr>
+            <td>Prix</td>
+            <td class="no">Gratuit</td>
+            <td class="no">Gratuit</td>
+            <td class="col-pro yes">12€/mois</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="offres">
+  <div class="wrap">
+    <div class="offers">
+      <div class="offer">
+        <h3>Basic</h3>
+        <div class="price">Gratuit</div>
+        <ul>
+          <li>1 prono principal par jour</li>
+          <li>Accès à l'historique complet</li>
+          <li>Notifications par email</li>
+        </ul>
+        <a href="compte.html" class="btn-ghost" style="text-align:center;" id="basicCta">Créer un compte gratuit</a>
+      </div>
+      <div class="offer feat">
+        <h3>Pro</h3>
+        <div class="price">12€<span>/mois</span></div>
+        <ul>
+          <li>Tous les pronos du jour (3-5)</li>
+          <li>Analyse détaillée par match</li>
+          <li>Accès Telegram privé</li>
+          <li>Alertes en temps réel</li>
+        </ul>
+        <a href="#" class="btn-primary" style="text-align:center;" id="proCta">Choisir</a>
+      </div>
+      <div class="offer">
+        <h3>Semaine</h3>
+        <div class="price">7€<span>/semaine</span></div>
+        <ul>
+          <li>Tous les pronos publiés du lundi au dimanche</li>
+          <li>Sans engagement</li>
+        </ul>
+        <a href="#" class="btn-ghost" style="text-align:center;" id="semaineCta">Choisir</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="membre" style="border-bottom:none;">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Aperçu en direct</div>
+      <h2>Les pronos du jour, en temps réel.</h2>
+    </div>
+    <div class="tier-legend">
+      <div class="tier-item"><span class="dot dot-public"></span>Public — visible sans rien faire</div>
+      <div class="tier-item"><span class="dot dot-account"></span>Compte gratuit — inscription requise</div>
+      <div class="tier-item"><span class="dot dot-pro"></span>Abonnement Pro — payant</div>
+    </div>
+    <div class="member-panel">
+      <div class="member-header">
+        <span>PRONOS DU JOUR</span>
+        <span class="mono" id="pronos-summary" style="color:var(--chalk-dim);">Chargement…</span>
+      </div>
+      <div id="pronos-list">
+        <div class="lock-row"><span class="l mono">Chargement des pronos…</span></div>
+      </div>
+      <div class="unlock-cta" id="offresUnlockCta">
+        <p id="offresUnlockCtaText">Débloque les pronos réservés avec un compte gratuit ou l'abonnement Pro.</p>
+        <a href="compte.html" class="btn-primary" id="offresUnlockCtaBtn">Créer un compte gratuit</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="footer-links">
+      <a href="cgv.html">CGV</a>
+      <a href="confidentialite.html">Confidentialité</a>
+      <a href="legal.html">Infos légales</a>
+    </div>
+    <div>© 2026 — Analyses sportives personnelles. 18+. Jouer comporte des risques.</div>
+  </div>
+</footer>
+
+<script src="js/site.js"></script>
+<script>
+function badgeFor(visibility, unlocked){
+  if(unlocked) return { label: visibility === 'public' ? 'PUBLIC' : 'DÉBLOQUÉ', cls: visibility === 'public' ? 'free-badge' : 'account-badge unlocked' };
+  if(visibility === 'account') return { label: 'COMPTE GRATUIT', cls: 'account-badge' };
+  return { label: 'RÉSERVÉ PRO', cls: 'lock-badge' };
+}
+
+async function loadPronos(){
+  const list = document.getElementById('pronos-list');
+  const summary = document.getElementById('pronos-summary');
+  try{
+    const data = await apiFetch('/pronos');
+    const pronos = data.pronos || [];
+
+    if(pronos.length === 0){
+      summary.textContent = 'Aucun prono aujourd\'hui';
+      list.innerHTML = '<div class="lock-row"><span class="l mono">Reviens plus tard pour les prochains pronos.</span></div>';
+      updateOffresUnlockCta(pronos);
+      return;
+    }
+
+    const counts = { public: 0, account: 0, pro: 0 };
+    pronos.forEach(p => { counts[p.visibility] = (counts[p.visibility] || 0) + 1; });
+    summary.textContent = `${counts.public || 0} public · ${counts.account || 0} compte · ${counts.pro || 0} pro`;
+
+    list.innerHTML = pronos.map(p => {
+      const b = badgeFor(p.visibility, p.unlocked);
+      const time = new Date(p.match_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      const pickText = p.unlocked ? `PICK: ${p.pick}${p.odds ? ' · cote ' + p.odds : ''}` : 'PICK + cote';
+      const pickClass = p.unlocked ? 'pick-value free' : 'blurred';
+      return `
+        <div class="lock-row">
+          <span class="l mono">${time} — ${p.match_label}</span>
+          <span class="${pickClass}">${pickText}</span>
+          <span class="${b.cls}">${b.label}</span>
+        </div>`;
+    }).join('');
+    updateOffresUnlockCta(pronos);
+  }catch(err){
+    summary.textContent = 'Indisponible';
+    list.innerHTML = '<p class="fine">Impossible de charger les pronos pour le moment (' + err.message + ').</p>';
+  }
+}
+
+// Comme sur pronos.html : ce bloc "débloque tes pronos" ne doit apparaître
+// que s'il reste vraiment du contenu verrouillé pour le visiteur actuel —
+// jamais à quelqu'un déjà connecté (compte gratuit ou Pro) qui a déjà tout,
+// et jamais avec un texte qui ignore qu'il est déjà connecté.
+function updateOffresUnlockCta(pronos){
+  const cta = document.getElementById('offresUnlockCta');
+  const text = document.getElementById('offresUnlockCtaText');
+  const btn = document.getElementById('offresUnlockCtaBtn');
+  if(!cta) return;
+
+  const hasLocked = pronos.some(p => !p.unlocked);
+  if(!hasLocked){
+    cta.style.display = 'none';
+    return;
+  }
+
+  cta.style.display = '';
+  const user = getUser();
+  if(user){
+    text.textContent = 'Débloque plus de pronos en passant à un palier supérieur.';
+    btn.textContent = 'Voir les offres Pro';
+    btn.href = '#offres';
+  } else {
+    text.textContent = 'Débloque les pronos réservés avec un compte gratuit ou l\'abonnement Pro.';
+    btn.textContent = 'Créer un compte gratuit';
+    btn.href = 'compte.html';
+  }
+}
+
+loadPronos();
+
+// Les CTA Basic/Pro doivent refléter l'état réel du visiteur :
+// - palier correspondant → "Votre offre actuelle" (non cliquable)
+// - déjà connecté mais à un palier supérieur qui inclut cette offre
+//   (Pro inclut tout ce que Basic offre) → "Inclus dans votre abonnement"
+// - jamais "Créer un compte gratuit" à quelqu'un qui a déjà un compte.
+// La formule Semaine est un achat ponctuel sans palier persistant,
+// donc pas concernée ici.
+function markAsCurrentOffer(btn){
+  if(!btn) return;
+  btn.textContent = 'Votre offre actuelle';
+  btn.removeAttribute('href');
+  btn.classList.add('current-offer');
+  btn.setAttribute('aria-disabled', 'true');
+}
+
+function markAsIncluded(btn){
+  if(!btn) return;
+  btn.textContent = 'Inclus dans votre abonnement';
+  btn.removeAttribute('href');
+  btn.classList.add('current-offer');
+  btn.setAttribute('aria-disabled', 'true');
+}
+
+function reflectOfferCtas(){
+  const user = getUser();
+  if(!user) return;
+
+  const basicBtn = document.getElementById('basicCta');
+  const proBtn = document.getElementById('proCta');
+
+  if(user.tier === 'account') markAsCurrentOffer(basicBtn);
+  else if(user.tier === 'pro') markAsIncluded(basicBtn); // Basic est inclus dans Pro
+
+  if(user.tier === 'pro') markAsCurrentOffer(proBtn);
+}
+reflectOfferCtas();
+
+// Lance le paiement Stripe pour un plan donné ('pro' ou 'semaine').
+// Si le visiteur n'est pas connecté, on l'envoie d'abord créer un compte
+// (le backend exige requireAuth sur /api/billing/checkout).
+async function startCheckout(plan, btn){
+  if(btn && btn.getAttribute('aria-disabled') === 'true') return;
+
+  const user = getUser();
+  if(!user){
+    window.location.href = 'compte.html';
+    return;
+  }
+
+  const original = btn ? btn.textContent : null;
+  if(btn){
+    btn.textContent = 'Redirection…';
+    btn.setAttribute('aria-disabled', 'true');
+  }
+
+  try{
+    const data = await apiFetch('/billing/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ plan })
+    });
+    if(data.url){
+      window.location.href = data.url;
+    } else {
+      throw new Error('Réponse invalide du serveur.');
+    }
+  } catch(err){
+    alert('Impossible de lancer le paiement : ' + err.message);
+    if(btn){
+      btn.textContent = original;
+      btn.removeAttribute('aria-disabled');
+    }
+  }
+}
+
+const proCtaBtn = document.getElementById('proCta');
+if(proCtaBtn){
+  proCtaBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    startCheckout('pro', proCtaBtn);
+  });
+}
+
+const semaineCtaBtn = document.getElementById('semaineCta');
+if(semaineCtaBtn){
+  semaineCtaBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    startCheckout('semaine', semaineCtaBtn);
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon compte — TOTOPRONO PRONOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="navlinks">
+      <a href="index.html">Accueil</a>
+      <a href="apropos.html">À propos</a>
+      <a href="offres.html">Offres</a>
+      <a href="pronos.html">Pronostics</a>
+      <a href="faq.html">FAQ</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-status mono" id="navStatus"></span>
+      <a href="offres.html" class="navcta" id="navCta">S'abonner</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-head">
+  <div class="wrap">
+    <div class="eyebrow">Compte gratuit</div>
+    <h1>Débloque le palier "compte".</h1>
+    <p class="lead">Crée ton compte ou connecte-toi pour voir où tu en es et débloquer le prono du jour en accès gratuit.</p>
+  </div>
+</section>
+
+<section id="signup" style="border-bottom:none;">
+  <div class="wrap">
+
+    <div id="loggedInPanel" style="display:none;">
+      <div class="account-panel">
+        <div class="row"><span class="k">Connecté en tant que</span><span class="v" id="acc-name"></span></div>
+        <div class="row"><span class="k">Email</span><span class="v" id="acc-email"></span></div>
+        <div class="row"><span class="k">Palier</span><span class="v mono" id="acc-tier"></span></div>
+      </div>
+      <div class="account-panel" style="margin-top:16px;">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+          <input type="checkbox" id="notify-toggle" style="width:auto;">
+          <span>Recevoir un email à chaque nouveau prono débloqué pour mon palier</span>
+        </label>
+        <p id="notifyMsg" class="signup-msg" style="margin-top:8px;"></p>
+      </div>
+      <div class="btnrow" style="margin-top:24px;">
+        <a href="offres.html" class="btn-primary">Voir les pronos du jour</a>
+        <a href="#" class="btn-danger" id="logoutBtn">Se déconnecter</a>
+      </div>
+    </div>
+
+    <div id="authPanel" class="signup-grid">
+      <form class="signup-form" id="signupForm">
+        <div class="field">
+          <label for="su-name">Prénom</label>
+          <input type="text" id="su-name" required placeholder="Ton prénom">
+        </div>
+        <div class="field">
+          <label for="su-email">Email</label>
+          <input type="email" id="su-email" required placeholder="toi@email.com">
+        </div>
+        <div class="field">
+          <label for="su-password">Mot de passe</label>
+          <input type="password" id="su-password" required placeholder="8 caractères minimum" minlength="8">
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--chalk-dim); margin-bottom:14px; cursor:pointer;">
+          <input type="checkbox" id="su-notify" checked style="width:auto;">
+          <span>Recevoir un email à chaque nouveau prono débloqué pour mon palier</span>
+        </label>
+        <button type="submit" class="btn-primary" style="width:100%; text-align:center;">Créer mon compte gratuit</button>
+        <p id="signupMsg" class="signup-msg"></p>
+        <p class="fine" style="margin-top:12px;">Déjà un compte ? <a href="#" id="showLogin" style="color:var(--amber); text-decoration:underline;">Se connecter</a></p>
+      </form>
+      <form class="signup-form" id="loginForm" style="display:none;">
+        <div class="field">
+          <label for="li-email">Email</label>
+          <input type="email" id="li-email" required placeholder="toi@email.com">
+        </div>
+        <div class="field">
+          <label for="li-password">Mot de passe</label>
+          <input type="password" id="li-password" required placeholder="Ton mot de passe">
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%; text-align:center;">Se connecter</button>
+        <p id="loginMsg" class="signup-msg"></p>
+        <p class="fine" style="margin-top:12px;">Pas encore de compte ? <a href="#" id="showSignup" style="color:var(--amber); text-decoration:underline;">S'inscrire</a></p>
+        <p class="fine" style="margin-top:6px;"><a href="mdp-oublie.html" style="color:var(--chalk-dim); text-decoration:underline;">Mot de passe oublié ?</a></p>
+      </form>
+      <div class="signup-note">
+        <p><strong>Ce que ça débloque immédiatement :</strong></p>
+        <ul>
+          <li>Le prono "compte gratuit" du jour, en clair</li>
+          <li>Ton historique de pronos vus, sauvegardé</li>
+          <li>La newsletter avec le récap de la semaine</li>
+        </ul>
+        <p class="fine">Aucune carte bancaire requise à cette étape. Aucun email ne sera revendu à des tiers.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="footer-links">
+      <a href="cgv.html">CGV</a>
+      <a href="confidentialite.html">Confidentialité</a>
+      <a href="legal.html">Infos légales</a>
+    </div>
+    <div>© 2026 — Analyses sportives personnelles. 18+. Jouer comporte des risques.</div>
+  </div>
+</footer>
+
+<script src="js/site.js"></script>
+<script>
+async function showAccountState(){
+  const user = getUser();
+  const loggedIn = document.getElementById('loggedInPanel');
+  const authPanel = document.getElementById('authPanel');
+  if(user){
+    loggedIn.style.display = 'block';
+    authPanel.style.display = 'none';
+    document.getElementById('acc-name').textContent = user.name;
+    document.getElementById('acc-email').textContent = user.email || '—';
+    document.getElementById('acc-tier').textContent = user.tier;
+
+    // Récupère les infos à jour depuis le serveur (le localStorage peut être
+    // périmé, notamment le palier juste après un paiement Stripe).
+    const notifyToggle = document.getElementById('notify-toggle');
+    try{
+      const data = await apiFetch('/auth/me');
+      notifyToggle.checked = !!data.user.notify_email;
+
+      // Si le palier a changé côté serveur (ex: paiement Stripe traité par
+      // le webhook), on met à jour l'affichage ET le localStorage pour que
+      // tout le site (nav, offres.html...) reflète le nouveau palier sans
+      // attendre une reconnexion.
+      if(data.user.tier !== user.tier){
+        document.getElementById('acc-tier').textContent = data.user.tier;
+        setSession(getToken(), Object.assign({}, user, { tier: data.user.tier }));
+      }
+    }catch(err){
+      notifyToggle.checked = true; // valeur par défaut si l'appel échoue
+    }
+  } else {
+    loggedIn.style.display = 'none';
+    authPanel.style.display = 'grid';
+  }
+}
+
+document.getElementById('notify-toggle').addEventListener('change', async function(){
+  const msg = document.getElementById('notifyMsg');
+  const checked = this.checked;
+  try{
+    await apiFetch('/auth/notifications', { method: 'PATCH', body: JSON.stringify({ notify_email: checked }) });
+    msg.textContent = checked ? 'Notifications activées.' : 'Notifications désactivées.';
+    msg.className = 'signup-msg ok';
+  }catch(err){
+    this.checked = !checked; // annule visuellement si l'appel échoue
+    msg.textContent = err.message || 'Impossible de mettre à jour la préférence.';
+    msg.className = 'signup-msg err';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', function(e){
+  e.preventDefault();
+  clearSession();
+  showAccountState();
+  reflectNavStatus();
+});
+
+document.getElementById('showLogin').addEventListener('click', function(e){
+  e.preventDefault();
+  document.getElementById('signupForm').style.display = 'none';
+  document.getElementById('loginForm').style.display = 'block';
+});
+document.getElementById('showSignup').addEventListener('click', function(e){
+  e.preventDefault();
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'block';
+});
+
+document.getElementById('signupForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const name = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const password = document.getElementById('su-password').value;
+  const notify_email = document.getElementById('su-notify').checked;
+  const msg = document.getElementById('signupMsg');
+
+  if(!name || !email || password.length < 8){
+    msg.textContent = 'Merci de remplir tous les champs (mot de passe : 8 caractères min).';
+    msg.className = 'signup-msg err';
+    return;
+  }
+
+  try{
+    const data = await apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify({ name, email, password, notify_email }) });
+    setSession(data.token, data.user);
+    showAccountState();
+    reflectNavStatus();
+  }catch(err){
+    msg.textContent = err.message || "Erreur d'inscription — réessaie.";
+    msg.className = 'signup-msg err';
+  }
+});
+
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const email = document.getElementById('li-email').value.trim();
+  const password = document.getElementById('li-password').value;
+  const msg = document.getElementById('loginMsg');
+
+  try{
+    const data = await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    setSession(data.token, data.user);
+    showAccountState();
+    reflectNavStatus();
+  }catch(err){
+    msg.textContent = err.message || 'Erreur de connexion — réessaie.';
+    msg.className = 'signup-msg err';
+  }
+});
+
+showAccountState();
+</script>
+</body>
+</html>

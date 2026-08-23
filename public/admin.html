@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOTOPRONO PRONOS — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pitch: #0a1210;
+    --pitch-2: #0f1a17;
+    --line: #1c2b26;
+    --chalk: #f7f6f2;
+    --chalk-dim: #b8c4bf;
+    --amber: #ffb627;
+    --win: #4caf6d;
+    --lose: #d9534f;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--pitch); color: var(--chalk); font-family:'Inter', sans-serif;
+    line-height:1.5; padding:32px 20px 80px;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  h1{font-family:'Teko', sans-serif; font-weight:600; font-size:40px; margin-bottom:4px;}
+  h1 span{color:var(--amber);}
+  .sub{color:var(--chalk-dim); font-size:14px; margin-bottom:32px;}
+  .wrap{max-width:640px; margin:0 auto;}
+  .card{
+    background:var(--pitch-2); border:1px solid var(--line); border-radius:6px;
+    padding:24px; margin-bottom:24px;
+  }
+  .card h2{font-family:'Teko',sans-serif; font-weight:600; font-size:24px; margin-bottom:16px;}
+  .field{margin-bottom:14px;}
+  label{display:block; font-size:12px; color:var(--chalk-dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;}
+  input, select, textarea{
+    width:100%; background:var(--pitch); border:1px solid var(--line); color:var(--chalk);
+    padding:10px 12px; border-radius:4px; font-family:inherit; font-size:14px;
+  }
+  textarea{resize:vertical; min-height:70px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  button{
+    background:var(--amber); color:var(--pitch); font-weight:700; font-size:14px;
+    padding:11px 20px; border:none; border-radius:4px; cursor:pointer; font-family:inherit;
+  }
+  button.secondary{background:transparent; border:1px solid var(--line); color:var(--chalk); font-weight:600;}
+  button.danger{background:transparent; border:1px solid rgba(217,83,79,0.4); color:var(--lose); font-weight:600;}
+  button.danger:hover{background:rgba(217,83,79,0.12);}
+  button.small{padding:6px 12px; font-size:12px;}
+  .msg{margin-top:10px; font-size:13px;}
+  .msg.ok{color:var(--win);}
+  .msg.err{color:var(--lose);}
+  .prono-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:12px 0; border-bottom:1px solid var(--line); font-size:13px;
+  }
+  .prono-row:last-child{border-bottom:none;}
+  .prono-info{flex:1;}
+  .prono-info .match{font-weight:600;}
+  .prono-info .meta{color:var(--chalk-dim); font-size:12px;}
+  .tag{
+    font-family:'IBM Plex Mono',monospace; font-size:10px; padding:3px 8px; border-radius:2px;
+    border:1px solid var(--line); text-transform:uppercase;
+  }
+  .tag.won{color:var(--win); border-color:rgba(76,175,109,0.4);}
+  .tag.lost{color:var(--lose); border-color:rgba(217,83,79,0.4);}
+  .tag.pending{color:var(--chalk-dim);}
+  .actions{display:flex; gap:6px;}
+  a.back{color:var(--chalk-dim); font-size:13px; display:inline-block; margin-bottom:20px;}
+  .user-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:12px 0; border-bottom:1px solid var(--line); font-size:13px;
+  }
+  .user-row:last-child{border-bottom:none;}
+  .user-info{flex:1; min-width:0;}
+  .user-info .name{font-weight:600;}
+  .user-info .meta{color:var(--chalk-dim); font-size:12px; overflow-wrap:anywhere;}
+  .tag.tier-pro{color:var(--amber); border-color:rgba(255,182,39,0.4);}
+  .tag.tier-account{color:var(--chalk-dim);}
+  .tag.notify-off{opacity:0.5;}
+  .tag.anj{color:var(--lose); border-color:rgba(217,83,79,0.4);}
+  .checkbox-field{margin-bottom:14px;}
+  .checkbox-label{
+    display:flex; align-items:flex-start; gap:10px; text-transform:none; letter-spacing:normal;
+    font-size:13px; color:var(--chalk); cursor:pointer;
+  }
+  .checkbox-label input{width:auto; margin-top:2px; accent-color:var(--amber);}
+  .checkbox-label .hint{display:block; color:var(--chalk-dim); font-size:11px; margin-top:2px;}
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;}
+  .stat-box{
+    background:var(--pitch); border:1px solid var(--line); border-radius:4px; padding:14px;
+  }
+  .stat-box .stat-label{font-size:11px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;}
+  .stat-box .stat-value{font-family:'Teko',sans-serif; font-size:30px; font-weight:600;}
+  .stat-box .stat-value span{font-size:16px; color:var(--chalk-dim); font-family:'Inter',sans-serif;}
+  .dashboard-sub{font-size:13px; font-weight:600; margin:20px 0 10px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:0.05em;}
+  .week-row{display:flex; align-items:center; gap:10px; font-size:12px; margin-bottom:8px;}
+  .week-row .week-label{width:76px; flex-shrink:0; color:var(--chalk-dim);}
+  .week-row .week-bar-track{flex:1; background:var(--pitch); border:1px solid var(--line); border-radius:2px; height:16px; overflow:hidden;}
+  .week-row .week-bar-fill{background:var(--amber); height:100%; min-width:2px;}
+  .week-row .week-count{width:24px; text-align:right; flex-shrink:0;}
+  .tier-stat-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:10px 0; border-bottom:1px solid var(--line); font-size:13px;
+  }
+  .tier-stat-row:last-child{border-bottom:none;}
+  .login-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:10px 0; border-bottom:1px solid var(--line); font-size:12px;
+  }
+  .login-row:last-child{border-bottom:none;}
+  .login-row .login-info{flex:1; min-width:0; overflow-wrap:anywhere;}
+  .login-row .login-time{color:var(--chalk-dim); font-size:11px;}
+  .tag.success{color:var(--win); border-color:rgba(76,175,109,0.4);}
+  .tag.failed{color:var(--lose); border-color:rgba(217,83,79,0.4);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/" class="back">← Retour au site</a>
+  <h1>TOTOPRONO<span>.</span> Admin</h1>
+  <p class="sub">Ajoute tes pronos du jour et marque les résultats une fois les matchs joués.</p>
+
+  <div class="card" id="loginCard">
+    <h2>Connexion</h2>
+    <form id="loginForm">
+      <div class="field">
+        <label for="li-email">Email</label>
+        <input type="email" id="li-email" required>
+      </div>
+      <div class="field">
+        <label for="li-password">Mot de passe</label>
+        <input type="password" id="li-password" required>
+      </div>
+      <button type="submit">Se connecter</button>
+      <p id="loginMsg" class="msg"></p>
+    </form>
+  </div>
+
+  <div id="adminArea" style="display:none;">
+    <div class="card">
+      <h2>Nouveau prono</h2>
+      <form id="pronoForm">
+        <div class="field">
+          <label for="p-match">Match</label>
+          <input type="text" id="p-match" placeholder="ex: PSG vs Marseille" required>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="p-comp">Compétition</label>
+            <input type="text" id="p-comp" placeholder="ex: Ligue 1">
+          </div>
+          <div class="field">
+            <label for="p-date">Date &amp; heure du match</label>
+            <input type="datetime-local" id="p-date" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="p-pick">Pick</label>
+          <input type="text" id="p-pick" placeholder="ex: PSG -1.5 handicap" required>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="p-odds">Cote</label>
+            <input type="number" step="0.01" id="p-odds" placeholder="ex: 1.95">
+          </div>
+          <div class="field">
+            <label for="p-vis">Palier requis</label>
+            <select id="p-vis">
+              <option value="public">Public</option>
+              <option value="account" selected>Compte gratuit</option>
+              <option value="pro">Pro</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="p-analysis">Analyse (optionnel, réservée aux paliers qui débloquent le pick)</label>
+          <textarea id="p-analysis"></textarea>
+        </div>
+        <div class="field checkbox-field">
+          <label class="checkbox-label">
+            <input type="checkbox" id="p-hors-anj">
+            <span>Hors ANJ <span class="hint">(opérateur/marché non agréé par l'Autorité Nationale des Jeux — sera signalé aux visiteurs)</span></span>
+          </label>
+        </div>
+        <button type="submit">Ajouter le prono</button>
+        <button type="button" class="secondary" id="logoutBtn" style="margin-left:8px;">Se déconnecter</button>
+        <p id="pronoMsg" class="msg"></p>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Pronos existants</h2>
+      <div id="pronoList" class="mono">Chargement…</div>
+    </div>
+
+    <div class="card">
+      <h2>Utilisateurs inscrits <span id="userCount" class="mono" style="font-size:14px; color:var(--chalk-dim); font-weight:400;"></span></h2>
+      <div class="field" style="margin-bottom:16px;">
+        <input type="text" id="userSearch" placeholder="Rechercher par nom ou email…">
+      </div>
+      <div id="userList" class="mono">Chargement…</div>
+    </div>
+
+    <div class="card">
+      <h2>Tableau de bord</h2>
+      <div id="dashboard" class="mono">Chargement…</div>
+    </div>
+
+    <div class="card">
+      <h2>Historique des connexions</h2>
+      <p class="sub" style="margin-bottom:16px;">50 dernières tentatives de connexion — utile pour repérer un accès suspect au compte pro.</p>
+      <div id="loginHistory" class="mono">Chargement…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = '/api';
+
+function getToken(){ return localStorage.getItem('apex_admin_token'); }
+function setToken(t){ localStorage.setItem('apex_admin_token', t); }
+function clearToken(){ localStorage.removeItem('apex_admin_token'); }
+
+async function apiFetch(path, options = {}){
+  const token = getToken();
+  const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+  if(token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API_BASE + path, Object.assign({}, options, { headers }));
+  const data = await res.json().catch(() => ({}));
+  if(!res.ok) throw new Error(data.error || 'Erreur serveur.');
+  return data;
+}
+
+function showAdmin(){
+  document.getElementById('loginCard').style.display = 'none';
+  document.getElementById('adminArea').style.display = 'block';
+  loadList();
+  loadUsers();
+  loadDashboard();
+  loadLoginHistory();
+}
+
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const email = document.getElementById('li-email').value.trim();
+  const password = document.getElementById('li-password').value;
+  const msg = document.getElementById('loginMsg');
+  try{
+    const data = await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    if(!data.user.is_admin){
+      msg.textContent = 'Ce compte n\'a pas accès au panel admin. Utilise scripts/set-admin.js pour te donner l\'accès.';
+      msg.className = 'msg err';
+      return;
+    }
+    setToken(data.token);
+    showAdmin();
+  }catch(err){
+    msg.textContent = err.message;
+    msg.className = 'msg err';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', function(){
+  clearToken();
+  location.reload();
+});
+
+document.getElementById('pronoForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const msg = document.getElementById('pronoMsg');
+  const matchDate = document.getElementById('p-date').value; // format "YYYY-MM-DDTHH:mm"
+  const body = {
+    match_label: document.getElementById('p-match').value.trim(),
+    competition: document.getElementById('p-comp').value.trim() || null,
+    pick: document.getElementById('p-pick').value.trim(),
+    odds: document.getElementById('p-odds').value ? parseFloat(document.getElementById('p-odds').value) : null,
+    analysis: document.getElementById('p-analysis').value.trim() || null,
+    visibility: document.getElementById('p-vis').value,
+    match_date: matchDate.replace('T', ' ') + ':00',
+    hors_anj: document.getElementById('p-hors-anj').checked,
+  };
+  try{
+    await apiFetch('/pronos', { method: 'POST', body: JSON.stringify(body) });
+    msg.textContent = 'Prono ajouté.';
+    msg.className = 'msg ok';
+    document.getElementById('pronoForm').reset();
+    document.getElementById('p-vis').value = 'account';
+    document.getElementById('p-hors-anj').checked = false;
+    loadList();
+  }catch(err){
+    msg.textContent = err.message;
+    msg.className = 'msg err';
+  }
+});
+
+async function markResult(id, result){
+  try{
+    await apiFetch(`/pronos/${id}/result`, { method: 'PATCH', body: JSON.stringify({ result }) });
+    loadList();
+  }catch(err){
+    alert(err.message);
+  }
+}
+
+async function deleteProno(id, matchLabel){
+  if(!confirm(`Supprimer définitivement le prono "${matchLabel}" ? Cette action est irréversible.`)) return;
+  try{
+    await apiFetch(`/pronos/${id}`, { method: 'DELETE' });
+    loadList();
+  }catch(err){
+    alert(err.message);
+  }
+}
+
+async function loadList(){
+  const list = document.getElementById('pronoList');
+  try{
+    const data = await apiFetch('/pronos'); // connecté en admin → tout est débloqué
+    if(data.pronos.length === 0){
+      list.innerHTML = 'Aucun prono pour l\'instant.';
+      return;
+    }
+    list.innerHTML = data.pronos.map(p => {
+      const tagClass = p.result === 'won' ? 'won' : p.result === 'lost' ? 'lost' : 'pending';
+      const tagLabel = p.result === 'won' ? 'GAGNÉ' : p.result === 'lost' ? 'PERDU' : 'EN ATTENTE';
+      const date = new Date(p.match_date).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      const safeLabel = p.match_label.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      return `
+        <div class="prono-row">
+          <div class="prono-info">
+            <div class="match">${p.match_label}</div>
+            <div class="meta">${date} · ${p.competition || ''} · ${p.visibility} · ${p.pick || ''}${p.odds ? ' · cote ' + p.odds : ''}</div>
+          </div>
+          <span class="tag ${tagClass}">${tagLabel}</span>
+          ${p.hors_anj ? '<span class="tag anj">HORS ANJ</span>' : ''}
+          <div class="actions">
+            <button class="secondary small" onclick="markResult(${p.id}, 'won')">Gagné</button>
+            <button class="secondary small" onclick="markResult(${p.id}, 'lost')">Perdu</button>
+            <button class="danger small" onclick="deleteProno(${p.id}, '${safeLabel}')">Supprimer</button>
+          </div>
+        </div>`;
+    }).join('');
+  }catch(err){
+    list.innerHTML = 'Impossible de charger la liste (' + err.message + ').';
+  }
+}
+
+let allUsers = [];
+
+async function loadUsers(){
+  const list = document.getElementById('userList');
+  try{
+    const data = await apiFetch('/auth/users');
+    allUsers = data.users;
+    document.getElementById('userCount').textContent = `(${allUsers.length})`;
+    renderUsers(allUsers);
+  }catch(err){
+    list.innerHTML = 'Impossible de charger les utilisateurs (' + err.message + ').';
+  }
+}
+
+function renderUsers(users){
+  const list = document.getElementById('userList');
+  if(users.length === 0){
+    list.innerHTML = 'Aucun utilisateur trouvé.';
+    return;
+  }
+  list.innerHTML = users.map(u => {
+    const tierClass = u.tier === 'pro' ? 'tier-pro' : 'tier-account';
+    const tierLabel = u.tier === 'pro' ? 'PRO' : 'COMPTE';
+    const proUntil = u.tier === 'pro' && u.pro_until
+      ? ' · pro jusqu\'au ' + new Date(u.pro_until).toLocaleDateString('fr-FR')
+      : '';
+    const created = new Date(u.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const notifyLabel = u.notify_email ? 'notifs ON' : 'notifs OFF';
+    const notifyClass = u.notify_email ? '' : 'notify-off';
+    return `
+      <div class="user-row">
+        <div class="user-info">
+          <div class="name">${u.name}</div>
+          <div class="meta">${u.email} · inscrit le ${created}${proUntil}</div>
+        </div>
+        <span class="tag ${tierClass}">${tierLabel}</span>
+        <span class="tag ${notifyClass}">${notifyLabel}</span>
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('userSearch').addEventListener('input', function(){
+  const q = this.value.trim().toLowerCase();
+  if(!q){ renderUsers(allUsers); return; }
+  renderUsers(allUsers.filter(u =>
+    u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+  ));
+});
+
+async function loadDashboard(){
+  const el = document.getElementById('dashboard');
+  try{
+    const [userStats, tierStats] = await Promise.all([
+      apiFetch('/auth/stats'),
+      apiFetch('/pronos/win-rates-by-tier'),
+    ]);
+
+    const maxWeek = Math.max(1, ...userStats.signupsByWeek.map(w => w.count));
+    const weeksHtml = userStats.signupsByWeek.map(w => {
+      const d = new Date(w.week + 'T00:00:00');
+      const label = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+      const pct = Math.round((w.count / maxWeek) * 100);
+      return `
+        <div class="week-row">
+          <span class="week-label">Sem. ${label}</span>
+          <span class="week-bar-track"><span class="week-bar-fill" style="width:${pct}%"></span></span>
+          <span class="week-count">${w.count}</span>
+        </div>`;
+    }).join('');
+
+    const tierLabels = { public: 'Public', account: 'Compte gratuit', pro: 'Pro' };
+    const tiersHtml = tierStats.stats.map(t => {
+      const rateText = t.winRate === null ? 'pas encore de résultat' : `${t.winRate}% (${t.wins}/${t.resolved})`;
+      return `
+        <div class="tier-stat-row">
+          <span>${tierLabels[t.tier] || t.tier}</span>
+          <span class="mono">${rateText}</span>
+        </div>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-label">Utilisateurs inscrits</div>
+          <div class="stat-value">${userStats.totalUsers}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Taux de conversion → pro</div>
+          <div class="stat-value">${userStats.conversionRate === null ? '—' : userStats.conversionRate + '%'} <span>(${userStats.proUsers} pro)</span></div>
+        </div>
+      </div>
+      <div class="dashboard-sub">Inscriptions par semaine</div>
+      ${weeksHtml}
+      <div class="dashboard-sub">Taux de réussite des pronos par palier</div>
+      ${tiersHtml}
+    `;
+  }catch(err){
+    el.innerHTML = 'Impossible de charger le tableau de bord (' + err.message + ').';
+  }
+}
+
+async function loadLoginHistory(){
+  const el = document.getElementById('loginHistory');
+  try{
+    const data = await apiFetch('/auth/login-history');
+    if(data.events.length === 0){
+      el.innerHTML = 'Aucune connexion enregistrée.';
+      return;
+    }
+    el.innerHTML = data.events.map(e => {
+      const time = new Date(e.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      const statusClass = e.success ? 'success' : 'failed';
+      const statusLabel = e.success ? 'RÉUSSIE' : 'ÉCHOUÉE';
+      const tierLabel = e.tier ? ` · ${e.tier}` : '';
+      return `
+        <div class="login-row">
+          <div class="login-info">
+            <div>${e.email}${tierLabel}</div>
+            <div class="login-time">${time}${e.ip ? ' · ' + e.ip : ''}</div>
+          </div>
+          <span class="tag ${statusClass}">${statusLabel}</span>
+        </div>`;
+    }).join('');
+  }catch(err){
+    el.innerHTML = 'Impossible de charger l\'historique (' + err.message + ').';
+  }
+}
+
+if(getToken()) showAdmin();
+</script>
+</body>
+</html>

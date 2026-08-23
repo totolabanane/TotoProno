@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pronostics — TOTOPRONO PRONOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="navlinks">
+      <a href="index.html">Accueil</a>
+      <a href="apropos.html">À propos</a>
+      <a href="offres.html">Offres</a>
+      <a href="pronos.html" class="active">Pronostics</a>
+      <a href="faq.html">FAQ</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-status mono" id="navStatus"></span>
+      <a href="offres.html" class="navcta" id="navCta">S'abonner</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-head">
+  <div class="wrap">
+    <div class="eyebrow">Tous les pronostics</div>
+    <h1>Chaque pick, listé et vérifiable.</h1>
+    <p class="lead">La liste complète des pronostics publiés — à venir et déjà joués. Le contenu affiché dépend uniquement du palier de ton compte.</p>
+  </div>
+</section>
+
+<section id="pronos-page" style="border-bottom:none;">
+  <div class="wrap">
+    <div class="tier-legend">
+      <div class="tier-item"><span class="dot dot-public"></span>Public — visible sans rien faire</div>
+      <div class="tier-item"><span class="dot dot-account"></span>Compte gratuit — inscription requise</div>
+      <div class="tier-item"><span class="dot dot-pro"></span>Abonnement Pro — payant</div>
+    </div>
+
+    <div class="filters">
+      <div class="field">
+        <label for="f-comp">Compétition</label>
+        <select id="f-comp">
+          <option value="">Toutes</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-vis">Palier</label>
+        <select id="f-vis">
+          <option value="">Tous</option>
+          <option value="public">Public</option>
+          <option value="account">Compte gratuit</option>
+          <option value="pro">Pro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-result">Résultat</label>
+        <select id="f-result">
+          <option value="">Tous</option>
+          <option value="pending">En attente</option>
+          <option value="won">Gagnés</option>
+          <option value="lost">Perdus</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="member-panel">
+      <div class="member-header">
+        <span>PRONOSTICS</span>
+        <span class="mono" id="pronos-summary" style="color:var(--chalk-dim);">Chargement…</span>
+      </div>
+      <div id="pronos-list">
+        <div class="lock-row"><span class="l mono">Chargement des pronostics…</span></div>
+      </div>
+      <div class="unlock-cta" id="unlockCta">
+        <p id="unlockCtaText">Débloque les pronostics réservés avec un compte gratuit ou l'abonnement Pro.</p>
+        <a href="compte.html" class="btn-primary" id="unlockCtaBtn">Créer un compte gratuit</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="footer-links">
+      <a href="cgv.html">CGV</a>
+      <a href="confidentialite.html">Confidentialité</a>
+      <a href="legal.html">Infos légales</a>
+    </div>
+    <div>© 2026 — Analyses sportives personnelles. 18+. Jouer comporte des risques.</div>
+  </div>
+</footer>
+
+<script src="js/site.js"></script>
+<script>
+let allPronos = [];
+
+function badgeFor(visibility, unlocked){
+  if(unlocked) return { label: visibility === 'public' ? 'PUBLIC' : 'DÉBLOQUÉ', cls: visibility === 'public' ? 'free-badge' : 'account-badge unlocked' };
+  if(visibility === 'account') return { label: 'COMPTE GRATUIT', cls: 'account-badge' };
+  return { label: 'RÉSERVÉ PRO', cls: 'lock-badge' };
+}
+
+function resultTag(result){
+  if(result === 'won') return '<span class="result-tag won">GAGNÉ</span>';
+  if(result === 'lost') return '<span class="result-tag lost">PERDU</span>';
+  return '<span class="result-tag pending">EN ATTENTE</span>';
+}
+
+function populateCompetitions(pronos){
+  const select = document.getElementById('f-comp');
+  const existing = new Set(Array.from(select.options).map(o => o.value));
+  const comps = Array.from(new Set(pronos.map(p => p.competition).filter(Boolean))).sort();
+  comps.forEach(c => {
+    if(!existing.has(c)){
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      select.appendChild(opt);
+    }
+  });
+}
+
+function applyFiltersAndRender(){
+  const comp = document.getElementById('f-comp').value;
+  const vis = document.getElementById('f-vis').value;
+  const res = document.getElementById('f-result').value;
+
+  const filtered = allPronos.filter(p => {
+    if(comp && p.competition !== comp) return false;
+    if(vis && p.visibility !== vis) return false;
+    if(res === 'pending' && p.result) return false;
+    if((res === 'won' || res === 'lost') && p.result !== res) return false;
+    return true;
+  });
+
+  // Les plus récents (ou les plus proches à venir) en premier.
+  const sorted = filtered.slice().sort((a, b) => new Date(b.match_date) - new Date(a.match_date));
+
+  const list = document.getElementById('pronos-list');
+  const summary = document.getElementById('pronos-summary');
+
+  summary.textContent = `${sorted.length} prono${sorted.length > 1 ? 's' : ''} affiché${sorted.length > 1 ? 's' : ''} sur ${allPronos.length}`;
+
+  if(sorted.length === 0){
+    list.innerHTML = '<p class="empty-note">Aucun prono ne correspond à ces filtres.</p>';
+    return;
+  }
+
+  list.innerHTML = sorted.map(p => {
+    const b = badgeFor(p.visibility, p.unlocked);
+    const date = new Date(p.match_date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const pickText = p.unlocked ? `PICK: ${p.pick}${p.odds ? ' · cote ' + p.odds : ''}` : 'PICK + cote';
+    const pickClass = p.unlocked ? 'pick-value free' : 'blurred';
+    const comp = p.competition ? ` — ${p.competition}` : '';
+    return `
+      <div class="lock-row">
+        <span class="l mono">${date}${comp} — ${p.match_label}</span>
+        <span class="${pickClass}">${pickText}</span>
+        ${resultTag(p.result)}
+        ${p.hors_anj ? '<span class="anj-badge">HORS ANJ</span>' : ''}
+        <span class="${b.cls}">${b.label}</span>
+      </div>`;
+  }).join('');
+}
+
+async function loadPronos(){
+  const list = document.getElementById('pronos-list');
+  const summary = document.getElementById('pronos-summary');
+  try{
+    const data = await apiFetch('/pronos');
+    allPronos = data.pronos || [];
+
+    if(allPronos.length === 0){
+      summary.textContent = 'Aucun prono pour le moment';
+      list.innerHTML = '<p class="empty-note">Reviens plus tard pour les prochains pronostics.</p>';
+      updateUnlockCta();
+      return;
+    }
+
+    populateCompetitions(allPronos);
+    applyFiltersAndRender();
+    updateUnlockCta();
+  }catch(err){
+    summary.textContent = 'Indisponible';
+    list.innerHTML = '<p class="fine">Impossible de charger les pronostics pour le moment (' + err.message + ').</p>';
+  }
+}
+
+// Le bloc "débloque tes pronostics" ne doit apparaître que s'il reste
+// réellement du contenu verrouillé pour l'utilisateur actuel — jamais à
+// quelqu'un de déjà connecté qui a déjà tout débloqué.
+function updateUnlockCta(){
+  const cta = document.getElementById('unlockCta');
+  const text = document.getElementById('unlockCtaText');
+  const btn = document.getElementById('unlockCtaBtn');
+  const hasLocked = allPronos.some(p => !p.unlocked);
+
+  if(!hasLocked){
+    cta.style.display = 'none';
+    return;
+  }
+
+  cta.style.display = '';
+  const user = getUser();
+  if(user){
+    // Déjà connecté, mais son palier actuel ne débloque pas tout.
+    text.textContent = 'Débloque plus de pronostics en passant à un palier supérieur.';
+    btn.textContent = 'Voir les offres';
+    btn.href = 'offres.html';
+  } else {
+    text.textContent = 'Débloque les pronostics réservés avec un compte gratuit ou l\'abonnement Pro.';
+    btn.textContent = 'Créer un compte gratuit';
+    btn.href = 'compte.html';
+  }
+}
+
+['f-comp', 'f-vis', 'f-result'].forEach(id => {
+  document.getElementById(id).addEventListener('change', applyFiltersAndRender);
+});
+
+loadPronos();
+</script>
+</body>
+</html>

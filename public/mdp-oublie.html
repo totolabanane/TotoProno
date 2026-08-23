@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mot de passe oublié — TOTOPRONO PRONOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="navlinks">
+      <a href="index.html">Accueil</a>
+      <a href="apropos.html">À propos</a>
+      <a href="offres.html">Offres</a>
+      <a href="pronos.html">Pronostics</a>
+      <a href="faq.html">FAQ</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-status mono" id="navStatus"></span>
+      <a href="offres.html" class="navcta" id="navCta">S'abonner</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-head">
+  <div class="wrap">
+    <div class="eyebrow">Mon compte</div>
+    <h1>Mot de passe oublié.</h1>
+    <p class="lead">Indique ton email : si un compte existe, tu recevras un lien pour choisir un nouveau mot de passe.</p>
+  </div>
+</section>
+
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <div id="authPanel" class="signup-grid" style="max-width:480px;">
+      <form class="signup-form" id="forgotForm">
+        <div class="field">
+          <label for="fp-email">Email</label>
+          <input type="email" id="fp-email" required placeholder="toi@email.com">
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%; text-align:center;">Envoyer le lien de réinitialisation</button>
+        <p id="forgotMsg" class="signup-msg"></p>
+        <p class="fine" style="margin-top:12px;"><a href="compte.html" style="color:var(--amber); text-decoration:underline;">Retour à la connexion</a></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="footer-links">
+      <a href="cgv.html">CGV</a>
+      <a href="confidentialite.html">Confidentialité</a>
+      <a href="legal.html">Infos légales</a>
+    </div>
+    <div>© 2026 — Analyses sportives personnelles. 18+. Jouer comporte des risques.</div>
+  </div>
+</footer>
+
+<script src="js/site.js"></script>
+<script>
+document.getElementById('forgotForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const email = document.getElementById('fp-email').value.trim();
+  const msg = document.getElementById('forgotMsg');
+  const btn = e.target.querySelector('button');
+
+  msg.textContent = '';
+  msg.className = 'signup-msg';
+  btn.disabled = true;
+
+  try{
+    const data = await apiFetch('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+    msg.textContent = data.message;
+    msg.classList.add('ok');
+    e.target.reset();
+  }catch(err){
+    msg.textContent = err.message;
+    msg.classList.add('err');
+  }finally{
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOTOPRONO PRONOS — Analyses football personnelles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="navlinks">
+      <a href="index.html" class="active">Accueil</a>
+      <a href="apropos.html">À propos</a>
+      <a href="offres.html">Offres</a>
+      <a href="pronos.html">Pronostics</a>
+      <a href="faq.html">FAQ</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-status mono" id="navStatus"></span>
+      <a href="offres.html" class="navcta" id="navCta">S'abonner</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero" style="border-bottom:1px solid var(--line);">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Pronostics football — 100% personnels</div>
+      <h1>Un seul<br>analyste.<br><span class="amber">Zéro excuse.</span></h1>
+      <p class="lead">Pas de communauté de tipsters, pas de bruit. Uniquement mes analyses, publiées avant coup d'envoi et jamais modifiées après.</p>
+      <div class="btnrow">
+        <a href="offres.html" class="btn-primary">Voir les offres</a>
+        <a href="compte.html" class="btn-ghost">Créer un compte gratuit</a>
+      </div>
+    </div>
+    <div class="board">
+      <div class="board-title"><span>Saison en cours</span><span class="live">tracké en direct</span></div>
+      <div class="stat-grid">
+        <div class="stat"><div class="num amber" id="stat-winrate">—</div><div class="lbl">Réussite</div></div>
+        <div class="stat"><div class="num" id="stat-units">—</div><div class="lbl">Unités nettes</div></div>
+        <div class="stat"><div class="num" id="stat-total">0</div><div class="lbl">Pronos postés</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="track">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Historique</div>
+      <h2>Chaque prono, daté et archivé.</h2>
+    </div>
+    <div class="tickets" id="tickets">
+      <p class="mono" style="color:var(--chalk-dim);">Chargement de l'historique…</p>
+    </div>
+    <p class="track-note">Chaque ticket est publié avant le coup d'envoi et horodaté automatiquement — aucune modification a posteriori possible.</p>
+  </div>
+</section>
+
+<section class="cta-band" style="border-bottom:none;">
+  <div class="wrap">
+    <h2>Prêt à voir les pronos du jour ?</h2>
+    <p>Compte gratuit pour débloquer un premier niveau, abonnement Pro pour tout voir en clair.</p>
+    <div class="btnrow" style="justify-content:center;">
+      <a href="offres.html" class="btn-primary">Comparer les offres</a>
+      <a href="compte.html" class="btn-ghost">Créer un compte</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="footer-links">
+      <a href="cgv.html">CGV</a>
+      <a href="confidentialite.html">Confidentialité</a>
+      <a href="legal.html">Infos légales</a>
+    </div>
+    <div>© 2026 — Analyses sportives personnelles. 18+. Jouer comporte des risques.</div>
+  </div>
+</footer>
+
+<script src="js/site.js"></script>
+<script>
+async function loadStats(){
+  try{
+    const stats = await apiFetch('/pronos/stats');
+    document.getElementById('stat-total').textContent = stats.total;
+    document.getElementById('stat-winrate').textContent = stats.winRate === null ? '—' : stats.winRate + '%';
+    document.getElementById('stat-units').textContent = stats.resolved === 0 ? '—' : (stats.netUnits >= 0 ? '+' : '') + stats.netUnits;
+  }catch(err){
+    // Silencieux : le bandeau garde ses valeurs par défaut si l'API est indisponible.
+  }
+}
+loadStats();
+
+// --- Historique (section "track") : on affiche les vrais derniers pronos
+// résolus (gagné/perdu), déjà tranchés par l'API selon le palier du
+// visiteur — jamais de contenu en dur.
+async function loadTrackHistory(){
+  const el = document.getElementById('tickets');
+  try{
+    const data = await apiFetch('/pronos');
+    const pronos = data.pronos || [];
+
+    const resolved = pronos
+      .filter(p => (p.result === 'won' || p.result === 'lost') && p.unlocked && p.pick)
+      .sort((a, b) => new Date(b.match_date) - new Date(a.match_date))
+      .slice(0, 3);
+
+    if(resolved.length === 0){
+      el.innerHTML = '<p class="mono" style="color:var(--chalk-dim);">Pas encore de prono résolu à afficher.</p>';
+      return;
+    }
+
+    el.innerHTML = resolved.map(p => {
+      const date = new Date(p.match_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' }).toUpperCase();
+      const comp = p.competition ? p.competition.toUpperCase() : '';
+      const resultLabel = p.result === 'won' ? 'GAGNÉ' : 'PERDU';
+      const resultClass = p.result === 'won' ? 'won' : 'lost';
+      return `
+        <div class="ticket">
+          <div class="ticket-top">
+            <div class="ticket-meta"><span>${date}</span><span>${comp}</span></div>
+            <div class="ticket-match">${p.match_label}</div>
+            <div class="ticket-pick">PICK: ${p.pick}</div>
+          </div>
+          <div class="ticket-bottom">
+            <span class="odds">${p.odds ? 'cote ' + p.odds : ''}</span>
+            <span class="result ${resultClass}">${resultLabel}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }catch(err){
+    el.innerHTML = '<p class="fine">Historique indisponible pour le moment.</p>';
+  }
+}
+loadTrackHistory();
+</script>
+</body>
+</html>

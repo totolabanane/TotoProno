@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nouveau mot de passe — TOTOPRONO PRONOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="navlinks">
+      <a href="index.html">Accueil</a>
+      <a href="apropos.html">À propos</a>
+      <a href="offres.html">Offres</a>
+      <a href="pronos.html">Pronostics</a>
+      <a href="faq.html">FAQ</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-status mono" id="navStatus"></span>
+      <a href="offres.html" class="navcta" id="navCta">S'abonner</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-head">
+  <div class="wrap">
+    <div class="eyebrow">Mon compte</div>
+    <h1>Choisir un nouveau mot de passe.</h1>
+    <p class="lead">Ce lien est valable 1 heure et ne fonctionne qu'une seule fois.</p>
+  </div>
+</section>
+
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <div id="authPanel" class="signup-grid" style="max-width:480px;">
+      <form class="signup-form" id="resetForm">
+        <div class="field">
+          <label for="rp-password">Nouveau mot de passe</label>
+          <input type="password" id="rp-password" required placeholder="8 caractères minimum" minlength="8">
+        </div>
+        <div class="field">
+          <label for="rp-password-confirm">Confirme le mot de passe</label>
+          <input type="password" id="rp-password-confirm" required placeholder="Retape le même mot de passe" minlength="8">
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%; text-align:center;">Valider le nouveau mot de passe</button>
+        <p id="resetMsg" class="signup-msg"></p>
+      </form>
+      <p class="fine" id="resetLink" style="display:none; margin-top:12px;"><a href="compte.html" style="color:var(--amber); text-decoration:underline;">Aller me connecter</a></p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo">TOTOPRONO<span>.</span></div>
+    <div class="footer-links">
+      <a href="cgv.html">CGV</a>
+      <a href="confidentialite.html">Confidentialité</a>
+      <a href="legal.html">Infos légales</a>
+    </div>
+    <div>© 2026 — Analyses sportives personnelles. 18+. Jouer comporte des risques.</div>
+  </div>
+</footer>
+
+<script src="js/site.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const token = params.get('token');
+const form = document.getElementById('resetForm');
+const msg = document.getElementById('resetMsg');
+
+if(!token){
+  form.style.display = 'none';
+  msg.textContent = 'Lien invalide : le token est manquant. Refais une demande depuis "Mot de passe oublié".';
+  msg.classList.add('err');
+}
+
+form.addEventListener('submit', async function(e){
+  e.preventDefault();
+  const password = document.getElementById('rp-password').value;
+  const confirm = document.getElementById('rp-password-confirm').value;
+  const btn = e.target.querySelector('button');
+
+  msg.textContent = '';
+  msg.className = 'signup-msg';
+
+  if(password !== confirm){
+    msg.textContent = 'Les deux mots de passe ne correspondent pas.';
+    msg.classList.add('err');
+    return;
+  }
+
+  btn.disabled = true;
+  try{
+    const data = await apiFetch('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password })
+    });
+    msg.textContent = data.message;
+    msg.classList.add('ok');
+    form.style.display = 'none';
+    document.getElementById('resetLink').style.display = 'block';
+  }catch(err){
+    msg.textContent = err.message;
+    msg.classList.add('err');
+  }finally{
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
